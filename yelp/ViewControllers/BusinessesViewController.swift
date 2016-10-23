@@ -9,6 +9,9 @@
 import UIKit
 import MBProgressHUD
 
+enum LoadType: Int {
+    case hud = 0, pullDown, pullUp
+}
 class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     var searchBar: UISearchBar!
     var businesses: [Business]! = []
@@ -19,14 +22,7 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setup()
-        MBProgressHUD.showAdded(to: self.view, animated: true)
-        Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
-            self.businesses = businesses
-            self.tableView.reloadData()
-            MBProgressHUD.hide(for: self.view, animated: true)
-            }
-        )
-        
+        self.searchBusinesses(term: "Thai", loadType: .hud)
         /* Example of Yelp search with more search options specified
          Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
          self.businesses = businesses
@@ -73,12 +69,36 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
             
             // When the user has scrolled past the threshold, start requesting
             if(scrollView.contentOffset.y > scrollOffsetThreshold && self.tableView.isDragging) {
-                isMoreDataLoading = true
+                self.isMoreDataLoading = true
                 let frame = CGRect(x: 0, y: tableView.contentSize.height, width: tableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)
-                loadingMoreView?.frame = frame
-                loadingMoreView!.startAnimating()
+                self.loadingMoreView?.frame = frame
+                self.loadingMoreView!.startAnimating()
+                self.searchBusinesses(term: "Thai", loadType: .pullUp, offset: 20)
             }
         }
+    }
+    
+    // Mark: Utils
+    
+    fileprivate func searchBusinesses(term: String, loadType: LoadType, offset: Int = 0){
+        if loadType == .hud{
+            MBProgressHUD.showAdded(to: self.view, animated: true)
+        }
+        Business.searchWithTerm(term: "Thai", offset: offset, completion: { (businesses: [Business]?, error: Error?) -> Void in
+            if businesses != nil{
+                self.businesses.append(contentsOf: businesses!)
+                self.tableView.reloadData()
+            }
+            if loadType == .hud{
+                MBProgressHUD.hide(for: self.view, animated: true)
+            }else if(loadType == .pullUp){
+                self.isMoreDataLoading = false
+                self.loadingMoreView!.stopAnimating()
+                self.loadingMoreView!.isHidden = true
+            }
+            }
+        )
+
     }
     
     fileprivate func setup(){
