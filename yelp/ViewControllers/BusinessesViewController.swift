@@ -24,17 +24,6 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         super.viewDidLoad()
         self.setup()
         self.searchBusinesses(term: "Thai", loadType: .hud)
-        /* Example of Yelp search with more search options specified
-         Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
-         self.businesses = businesses
-         
-         for business in businesses {
-         print(business.name!)
-         print(business.address!)
-         }
-         }
-         */
-
     }
 
     // Mark: UITableView Delegate + DataSource
@@ -49,8 +38,9 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         cell.placeNameLabel.text    = business.name
         cell.addressLabel.text      = business.address
         cell.tagsLabel.text         = business.categories
-        cell.distanceLabel.text     = business.distance
-        cell.reviewsLabel.text      = business.reviewCount?.stringValue
+        cell.distanceLabel.text      = business.distance
+        cell.reviewsLabel.text       = business.reviewCount?.stringValue
+        cell.listNumberLabel.text = "\(indexPath.row + 1)."
         if let businessURL = business.imageURL {
             cell.photoImageView.setImageWith(businessURL)
         }
@@ -81,8 +71,17 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
     
     // Mark: FilterSettingsDelegate
     
-    func searchWithFilters(sort: YelpSortMode?, categories: [String]?, deals: Bool?) {
-        self.searchBusinesses(term: "Thai", loadType: .hud)
+    func searchWithFilters(sort: YelpSortMode?, categories: [String]?, deals: Bool?, distance: String?) {
+        MBProgressHUD.showAdded(to: self.view, animated: true)
+        Business.searchWithTerm(term: "Thai", sort: sort, categories: categories, deals: deals, distance: distance) { (businesses: [Business]?, error: Error?) in
+            if businesses != nil{
+                self.businesses = businesses
+            }else{
+                self.businesses = []
+            }
+            self.tableView.reloadData()
+            MBProgressHUD.hide(for: self.view, animated: true)
+        }
     }
     
     // Mark: Utils
@@ -113,10 +112,12 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         searchBar = UISearchBar()
         searchBar.delegate = self
         searchBar.placeholder = "Restaurants"
+        // Nav bar
+
         // Add SearchBar to the NavigationBar
         searchBar.sizeToFit()
         navigationItem.titleView = searchBar
-        self.tableView.estimatedRowHeight = 147
+        self.tableView.estimatedRowHeight = 107
         self.tableView.rowHeight = UITableViewAutomaticDimension
         // loading view
         let frame = CGRect(x: 0, y: tableView.contentSize.height, width: tableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight)

@@ -9,7 +9,7 @@
 import UIKit
 
 protocol FilterSettingsDelegate: class {
-    func searchWithFilters(sort: YelpSortMode?, categories: [String]?, deals: Bool?)
+    func searchWithFilters(sort: YelpSortMode?, categories: [String]?, deals: Bool?, distance: String?)
 }
 
 class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -23,6 +23,8 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var sortRowCount: Int = 1
     var selectedCategories = [String]()
     var categoryRowCount: Int = 4
+    var selectedSort: [String:Any]?
+    var selectedDist: [String:Any]?
     let dealsSwitchTag: Int = 100
     let categoriesExpandCellTag: Int = 999
     let categoriesStartSwitchTag: Int = 400
@@ -36,10 +38,7 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let titleLabel: UILabel = UILabel()
-        titleLabel.textColor = UIColor.blue
-        titleLabel.text = "Filters"
-        self.navigationItem.titleView = titleLabel
+        self.navigationItem.title = "Filters"
     }
 
     // MARK: Table view delegate + data source
@@ -90,16 +89,17 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 return cell
             }else{
                 let cell = tableView.dequeueReusableCell(withIdentifier: "chevron", for: indexPath) as! ChevronOptionTableViewCell
-                cell.chevronLabel.text = "Auto"
+                cell.chevronLabel.text = (self.selectedDist?["name"] as? String) ?? "Auto"
                 return cell
             }
         }else if indexPath.section == 2{
             if self.isSortExpanded{
                 let cell = tableView.dequeueReusableCell(withIdentifier: "option", for: indexPath) as! SelectOptionTableViewCell
                 cell.optionLabel.text = self.sorts[indexPath.row]["name"] as! String?
+                return cell
             }else {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "chevron", for: indexPath) as! ChevronOptionTableViewCell
-                cell.chevronLabel.text = "Best Match"
+                cell.chevronLabel.text = (self.selectedSort?["name"] as? String) ?? "Best Match"
                 return cell
             }
         }else if indexPath.section == 3{
@@ -128,9 +128,9 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 self.insertDistRows(expanded: true)
             }else{
                 self.distRowCount = 1
+                self.selectedDist = self.distances[indexPath.row]
                 self.insertDistRows(expanded: false)
             }
-
         }else if indexPath.section == 2{
             self.isSortExpanded = !self.isSortExpanded
             if self.isSortExpanded {
@@ -138,6 +138,7 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 self.insertSortRows(expanded: true)
             }else{
                 self.sortRowCount = 1
+                self.selectedSort = self.sorts[indexPath.row]
                 self.insertSortRows(expanded: false)
             }
         }else if indexPath.section == 3{
@@ -150,14 +151,21 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    // Mark: Actions
+    // MARK: Actions
     
     @IBAction func cancel(sender: UIBarButtonItem){
         self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func search(sender: UIBarButtonItem){
-        delegate?.searchWithFilters(sort: nil, categories: nil, deals: nil)
+        let sort: YelpSortMode? = (self.selectedSort?["value"] as? YelpSortMode?)!
+        var dist: String?
+        if self.selectedDist != nil{
+            if (self.selectedDist!["name"] as! String) != "Auto" {
+                dist = (self.selectedDist!["value"] as! String)
+            }
+        }
+        delegate?.searchWithFilters(sort: sort, categories: self.selectedCategories, deals: self.isDeals, distance: dist)
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -175,72 +183,63 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    // Mark: Utils
+    // MARK: Utils
     
     fileprivate func insertDistRows(expanded: Bool) {
-        var insertArr: [IndexPath]!
-        var delArr: [IndexPath]!
-        if expanded {
-            insertArr = [IndexPath(row: 0, section: 1),
-                         IndexPath(row: 1, section: 1),
-                         IndexPath(row: 2, section: 1),
-                         IndexPath(row: 3, section: 1),
-                         IndexPath(row: 4, section: 1)
-            ]
-            delArr = [IndexPath(row: 0, section: 1)]
-        } else {
-            delArr = [IndexPath(row: 0, section: 1),
-                      IndexPath(row: 1, section: 1),
-                      IndexPath(row: 2, section: 1),
-                      IndexPath(row: 3, section: 1),
-                      IndexPath(row: 4, section: 1)
-            ]
-            insertArr = [IndexPath(row: 0, section: 1)]
-        }
-        
+        let expandedArr = [
+                     IndexPath(row: 0, section: 1),
+                     IndexPath(row: 1, section: 1),
+                     IndexPath(row: 2, section: 1),
+                     IndexPath(row: 3, section: 1),
+                     IndexPath(row: 4, section: 1)
+        ]
+        let contractedArr = [
+            IndexPath(row: 0, section: 1)
+        ]
+
         self.tableView.beginUpdates()
-        self.tableView.deleteRows(at: delArr, with: .automatic)
-        self.tableView.insertRows(at: insertArr, with: .automatic)
+        if expanded {
+            self.tableView.insertRows(at: expandedArr, with: .fade)
+            self.tableView.deleteRows(at: contractedArr, with: .fade)
+        }else{
+            self.tableView.deleteRows(at: expandedArr, with: .fade)
+            self.tableView.insertRows(at: contractedArr, with: .fade)
+        }
         self.tableView.endUpdates()
-        
     }
     
     fileprivate func insertSortRows(expanded: Bool) {
-        var insertArr: [IndexPath]!
-        var delArr: [IndexPath]!
-        if expanded {
-            insertArr = [IndexPath(row: 0, section: 2),
-                         IndexPath(row: 1, section: 2),
-                         IndexPath(row: 2, section: 2),
-            ]
-            delArr = [IndexPath(row: 0, section: 2)]
-        }else{
-            delArr = [IndexPath(row: 0, section: 2),
-                      IndexPath(row: 1, section: 2),
-                      IndexPath(row: 2, section: 2),
-            ]
-            insertArr = [IndexPath(row: 0, section: 2)]
-        }
+        let expandedArr = [
+                     IndexPath(row: 0, section: 2),
+                     IndexPath(row: 1, section: 2),
+                     IndexPath(row: 2, section: 2)
+        ]
+        let contractedArr = [
+                     IndexPath(row: 0, section: 2),
+        ]
         self.tableView.beginUpdates()
-        self.tableView.deleteRows(at: delArr, with: .fade)
-        self.tableView.insertRows(at: insertArr, with: .automatic)
+        if expanded {
+            self.tableView.insertRows(at: expandedArr, with: .fade)
+            self.tableView.deleteRows(at: contractedArr, with: .fade)
+        }else{
+            self.tableView.deleteRows(at: expandedArr, with: .fade)
+            self.tableView.insertRows(at: contractedArr, with: .fade)
+        }
         self.tableView.endUpdates()
     }
     
     fileprivate func insertCategoryRows(){
         var insertArr = [IndexPath]()
-        var delArr = [IndexPath]()
         for i in (0..<Categories.categories.count){
             insertArr.append(IndexPath(row: i, section: 3))
         }
-        delArr = [IndexPath(row: 0, section: 3),
+        let delArr = [IndexPath(row: 0, section: 3),
                   IndexPath(row: 1, section: 3),
                   IndexPath(row: 2, section: 3),
-                  IndexPath(row: 3, section: 3),
-        ]
+                  IndexPath(row: 3, section: 3)]
         self.tableView.beginUpdates()
-        self.tableView.deleteRows(at: delArr, with: .automatic)
-        self.tableView.insertRows(at: insertArr, with: .top)
+        self.tableView.insertRows(at: insertArr, with: .fade)
+        self.tableView.deleteRows(at: delArr, with: .fade)
         self.tableView.endUpdates()
     }
 }

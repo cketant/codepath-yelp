@@ -16,6 +16,7 @@ class BusinessTableViewCell: UITableViewCell {
     @IBOutlet weak var tagsLabel: UILabel!
     @IBOutlet weak var distanceLabel: UILabel!
     @IBOutlet weak var starsImageView: UIImageView!
+    @IBOutlet weak var listNumberLabel: UILabel!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
