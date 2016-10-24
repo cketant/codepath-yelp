@@ -13,20 +13,31 @@ protocol FilterSettingsDelegate: class {
 }
 
 class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    weak var delegate: FilterSettingsDelegate?
     @IBOutlet weak var tableView: UITableView!
+    weak var delegate: FilterSettingsDelegate?
     var isDistanceExpanded: Bool = false
     var isSortExpanded: Bool = false
     var isAllCategories: Bool = false
     var isDeals: Bool?
-    
     var distRowCount: Int = 1
     var sortRowCount: Int = 1
+    var selectedCategories = [String]()
     var categoryRowCount: Int = 4
+    let dealsSwitchTag: Int = 100
+    let categoriesExpandCellTag: Int = 999
+    let categoriesStartSwitchTag: Int = 400
+    let distances: [[String:Any]] = [["name":"Auto", "value":"Auto"], ["name":"0.3", "value":0.3],
+                                     ["name":"1", "value":1], ["name":"5", "value":5],
+                                     ["name":"20", "value":20]]
+    let sorts: [[String:Any]] = [["name": "Best Matched", "value":YelpSortMode.bestMatched],
+                                 ["name":"Distance", "value":YelpSortMode.distance],
+                                 ["name":"Highest Rated", "value":YelpSortMode.highestRated]]
+    let sortTypes = ["Best Matched", "Distance", "Highest Rated"]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let titleLabel: UILabel = UILabel()
-        titleLabel.textColor = UIColor.white
+        titleLabel.textColor = UIColor.blue
         titleLabel.text = "Filters"
         self.navigationItem.titleView = titleLabel
     }
@@ -70,24 +81,14 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         if indexPath.section == 0{
             let cell = tableView.dequeueReusableCell(withIdentifier: "simpleSwitch", for: indexPath) as! SimpleSwitchTableViewCell
             cell.switchLabel.text = "Offering a Deal"
-            cell.filterSwitch.tag = 100
+            cell.filterSwitch.tag = self.dealsSwitchTag
+            return cell
         }else if indexPath.section == 1{
             if self.isDistanceExpanded {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "option", for: indexPath) as! SelectOptionTableViewCell
-                if indexPath.row == 0{
-                    // selected option
-                    cell.optionLabel.text = "Auto"
-                }else if indexPath.row == 1{
-                    cell.optionLabel.text = "0.3"
-                }else if indexPath.row == 2{
-                    cell.optionLabel.text = "1"
-                }else if indexPath.row == 3{
-                    cell.optionLabel.text = "5"
-                }else if indexPath.row == 4{
-                    cell.optionLabel.text = "20"
-                }
+                cell.optionLabel.text = self.distances[indexPath.row]["name"] as! String?
                 return cell
-            }else {
+            }else{
                 let cell = tableView.dequeueReusableCell(withIdentifier: "chevron", for: indexPath) as! ChevronOptionTableViewCell
                 cell.chevronLabel.text = "Auto"
                 return cell
@@ -95,18 +96,7 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }else if indexPath.section == 2{
             if self.isSortExpanded{
                 let cell = tableView.dequeueReusableCell(withIdentifier: "option", for: indexPath) as! SelectOptionTableViewCell
-                if indexPath.row == 0{
-                    // selected option
-                    cell.optionLabel.text = "Auto"
-                }else if indexPath.row == 1{
-                    cell.optionLabel.text = "0.3"
-                }else if indexPath.row == 2{
-                    cell.optionLabel.text = "1"
-                }else if indexPath.row == 3{
-                    cell.optionLabel.text = "5"
-                }else if indexPath.row == 4{
-                    cell.optionLabel.text = "20"
-                }
+                cell.optionLabel.text = self.sorts[indexPath.row]["name"] as! String?
             }else {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "chevron", for: indexPath) as! ChevronOptionTableViewCell
                 cell.chevronLabel.text = "Best Match"
@@ -114,13 +104,15 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }else if indexPath.section == 3{
             if indexPath.row == self.categoryRowCount-1 && !self.isAllCategories{
+                // Unexpanded Categories
                 let cell = tableView.dequeueReusableCell(withIdentifier: "all", for: indexPath) as! AllTableViewCell
-                cell.tag = 999
+                cell.tag = self.categoriesExpandCellTag
                 return cell
             }else{
+                // Expanded Categories
                 let cell = tableView.dequeueReusableCell(withIdentifier: "simpleSwitch", for: indexPath) as! SimpleSwitchTableViewCell
                 cell.switchLabel.text = Categories.categories[indexPath.row]["name"]
-                cell.tag = (indexPath.row + 400)
+                cell.filterSwitch.tag = (indexPath.row + self.categoriesStartSwitchTag)
                 return cell
             }
         }
@@ -142,7 +134,7 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }else if indexPath.section == 2{
             self.isSortExpanded = !self.isSortExpanded
             if self.isSortExpanded {
-                self.sortRowCount = 4
+                self.sortRowCount = 3
                 self.insertSortRows(expanded: true)
             }else{
                 self.sortRowCount = 1
@@ -150,10 +142,35 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }else if indexPath.section == 3{
             let cell = tableView.cellForRow(at: indexPath)
-            if cell?.tag == 999 {
+            if cell?.tag == self.categoriesExpandCellTag {
                 self.categoryRowCount = Categories.categories.count
                 self.isAllCategories = true
                 insertCategoryRows()
+            }
+        }
+    }
+    
+    // Mark: Actions
+    
+    @IBAction func cancel(sender: UIBarButtonItem){
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    @IBAction func search(sender: UIBarButtonItem){
+        delegate?.searchWithFilters(sort: nil, categories: nil, deals: nil)
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    @IBAction func switchChange(sender: UISwitch){
+        if sender.tag == self.dealsSwitchTag {
+            self.isDeals = sender.isOn
+        }else{
+            let index = (sender.tag - self.categoriesStartSwitchTag)
+            let code: String = (Categories.categories[index]["code"])!
+            if sender.isOn {
+                self.selectedCategories.append(code)
+            }else{
+                self.selectedCategories = self.selectedCategories.filter{$0 == code}
             }
         }
     }
@@ -165,18 +182,18 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var delArr: [IndexPath]!
         if expanded {
             insertArr = [IndexPath(row: 0, section: 1),
-                       IndexPath(row: 1, section: 1),
-                       IndexPath(row: 2, section: 1),
-                       IndexPath(row: 3, section: 1),
-                       IndexPath(row: 4, section: 1)
-            ]
-            delArr = [IndexPath(row: 0, section: 1)]
-        } else {
-            delArr = [IndexPath(row: 0, section: 1),
                          IndexPath(row: 1, section: 1),
                          IndexPath(row: 2, section: 1),
                          IndexPath(row: 3, section: 1),
                          IndexPath(row: 4, section: 1)
+            ]
+            delArr = [IndexPath(row: 0, section: 1)]
+        } else {
+            delArr = [IndexPath(row: 0, section: 1),
+                      IndexPath(row: 1, section: 1),
+                      IndexPath(row: 2, section: 1),
+                      IndexPath(row: 3, section: 1),
+                      IndexPath(row: 4, section: 1)
             ]
             insertArr = [IndexPath(row: 0, section: 1)]
         }
@@ -193,21 +210,19 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var delArr: [IndexPath]!
         if expanded {
             insertArr = [IndexPath(row: 0, section: 2),
-                                          IndexPath(row: 1, section: 2),
-                                          IndexPath(row: 2, section: 2),
-                                          IndexPath(row: 3, section: 2),
+                         IndexPath(row: 1, section: 2),
+                         IndexPath(row: 2, section: 2),
             ]
             delArr = [IndexPath(row: 0, section: 2)]
         }else{
             delArr = [IndexPath(row: 0, section: 2),
-                         IndexPath(row: 1, section: 2),
-                         IndexPath(row: 2, section: 2),
-                         IndexPath(row: 3, section: 2),
+                      IndexPath(row: 1, section: 2),
+                      IndexPath(row: 2, section: 2),
             ]
             insertArr = [IndexPath(row: 0, section: 2)]
         }
         self.tableView.beginUpdates()
-        self.tableView.deleteRows(at: delArr, with: .automatic)
+        self.tableView.deleteRows(at: delArr, with: .fade)
         self.tableView.insertRows(at: insertArr, with: .automatic)
         self.tableView.endUpdates()
     }
@@ -225,24 +240,7 @@ class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDa
         ]
         self.tableView.beginUpdates()
         self.tableView.deleteRows(at: delArr, with: .automatic)
-        self.tableView.insertRows(at: insertArr, with: .automatic)
+        self.tableView.insertRows(at: insertArr, with: .top)
         self.tableView.endUpdates()
-    }
-    
-    // Mark: Actions
-    
-    @IBAction func cancel(sender: UIBarButtonItem){
-        self.dismiss(animated: true, completion: nil)
-    }
-    
-    @IBAction func search(sender: UIBarButtonItem){
-        delegate?.searchWithFilters(sort: nil, categories: nil, deals: nil)
-        self.dismiss(animated: true, completion: nil)
-    }
-    
-    @IBAction func switchChange(sender: UISwitch){
-        if sender.tag == 100 {
-            self.isDeals = sender.isOn
-        }
     }
 }
