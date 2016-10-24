@@ -12,7 +12,8 @@ import MBProgressHUD
 enum LoadType: Int {
     case hud = 0, pullDown, pullUp
 }
-class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
+
+class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, FilterSettingsDelegate {
     var searchBar: UISearchBar!
     var businesses: [Business]! = []
     var isMoreDataLoading = false
@@ -78,6 +79,12 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         }
     }
     
+    // Mark: FilterSettingsDelegate
+    
+    func searchWithFilters(sort: YelpSortMode?, categories: [String]?, deals: Bool?) {
+        self.searchBusinesses(term: "Thai", loadType: .hud)
+    }
+    
     // Mark: Utils
     
     fileprivate func searchBusinesses(term: String, loadType: LoadType, offset: Int = 0){
@@ -120,6 +127,15 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         insets.bottom += InfiniteScrollActivityView.defaultHeight;
         self.tableView.contentInset = insets
     }
+    
+     // MARK: - Navigation
+     
+     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let nav = segue.destination as! UINavigationController
+        let vc  = nav.viewControllers.first as! FilterViewController
+        vc.delegate = self
+     }
+ 
 }
 
 // SearchBar methods
