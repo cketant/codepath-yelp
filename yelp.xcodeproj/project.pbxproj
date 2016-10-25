@@ -13,6 +13,7 @@
 		859B87E71DBB848A0040FF94 /* BusinessTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859B87E61DBB848A0040FF94 /* BusinessTableViewCell.swift */; };
 		859B87EC1DBB88AF0040FF94 /* Businesses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859B87EB1DBB88AF0040FF94 /* Businesses.swift */; };
 		859B87EE1DBB88C80040FF94 /* YelpClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859B87ED1DBB88C80040FF94 /* YelpClient.swift */; };
+		859C7F491DBF00DE00748ABF /* BusinessMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859C7F481DBF00DE00748ABF /* BusinessMapViewController.swift */; };
 		85F9D5211DB983F90020A290 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F9D5201DB983F90020A290 /* AppDelegate.swift */; };
 		85F9D5231DB983F90020A290 /* BusinessesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F9D5221DB983F90020A290 /* BusinessesViewController.swift */; };
 		85F9D5261DB983F90020A290 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 85F9D5241DB983F90020A290 /* Main.storyboard */; };
@@ -32,6 +33,7 @@
 		859B87E61DBB848A0040FF94 /* BusinessTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BusinessTableViewCell.swift; path = ViewControllers/Views/BusinessTableViewCell.swift; sourceTree = "<group>"; };
 		859B87EB1DBB88AF0040FF94 /* Businesses.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Businesses.swift; path = Models/Businesses.swift; sourceTree = "<group>"; };
 		859B87ED1DBB88C80040FF94 /* YelpClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = YelpClient.swift; path = Services/YelpClient.swift; sourceTree = "<group>"; };
+		859C7F481DBF00DE00748ABF /* BusinessMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BusinessMapViewController.swift; path = ViewControllers/BusinessMapViewController.swift; sourceTree = "<group>"; };
 		85F9D51D1DB983F90020A290 /* yelp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = yelp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		85F9D5201DB983F90020A290 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		85F9D5221DB983F90020A290 /* BusinessesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BusinessesViewController.swift; path = ViewControllers/BusinessesViewController.swift; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 				85F9D5221DB983F90020A290 /* BusinessesViewController.swift */,
 				8511FB531DBC109E00EFB0DE /* FilterViewController.swift */,
 				8511FB551DBC1B8000EFB0DE /* Views */,
+				859C7F481DBF00DE00748ABF /* BusinessMapViewController.swift */,
 			);
 			name = ViewControllers;
 			sourceTree = "<group>";
@@ -277,6 +280,7 @@
 				85FD94AE1DBD48C3000F7891 /* AllTableViewCell.swift in Sources */,
 				85FD94A61DBD1B5D000F7891 /* SimpleSwitchTableViewCell.swift in Sources */,
 				8511FB571DBC1BB000EFB0DE /* InfiniteScrollActivityView.swift in Sources */,
+				859C7F491DBF00DE00748ABF /* BusinessMapViewController.swift in Sources */,
 				8511FB541DBC109E00EFB0DE /* FilterViewController.swift in Sources */,
 				85FD94AA1DBD1C3B000F7891 /* SelectOptionTableViewCell.swift in Sources */,
 				859B87E71DBB848A0040FF94 /* BusinessTableViewCell.swift in Sources */,

@@ -14,11 +14,13 @@ enum LoadType: Int {
 }
 
 class BusinessesViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, FilterSettingsDelegate {
-    var searchBar: UISearchBar!
-    var businesses: [Business]! = []
-    var isMoreDataLoading = false
-    var loadingMoreView: InfiniteScrollActivityView?
-    @IBOutlet weak var tableView: UITableView!
+    private var searchBar: UISearchBar!
+    fileprivate var businesses: [Business]! = []
+    fileprivate var filteredBusinesses: [Business]! = []
+    fileprivate var isFiltering: Bool = false
+    private var isMoreDataLoading = false
+    private var loadingMoreView: InfiniteScrollActivityView?
+    @IBOutlet weak fileprivate var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,12 +31,21 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
     // Mark: UITableView Delegate + DataSource
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.businesses.count
+        if self.isFiltering {
+            return self.filteredBusinesses.count
+        }else{
+            return self.businesses.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: BusinessTableViewCell = tableView.dequeueReusableCell(withIdentifier: "yelpCell", for: indexPath) as! BusinessTableViewCell
-        let business: Business      = self.businesses[indexPath.row]
+        var business: Business!
+        if self.isFiltering{
+            business = self.filteredBusinesses[indexPath.row]
+        }else{
+            business = self.businesses[indexPath.row]
+        }
         cell.placeNameLabel.text    = business.name
         cell.addressLabel.text      = business.address
         cell.tagsLabel.text         = business.categories
@@ -43,6 +54,8 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         cell.listNumberLabel.text = "\(indexPath.row + 1)."
         if let businessURL = business.imageURL {
             cell.photoImageView.setImageWith(businessURL)
+            cell.photoImageView.layer.cornerRadius = 5
+            cell.photoImageView.clipsToBounds = true
         }
         if let starsURL = business.ratingImageURL {
             cell.starsImageView.setImageWith(starsURL)
@@ -53,7 +66,7 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
     // Mark: UIScrollView Delegate
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !self.isMoreDataLoading {
+        if !self.isMoreDataLoading && !self.isFiltering {
             // Calculate the position of one screen length before the bottom of the results
             let scrollViewContentHeight = tableView.contentSize.height
             let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
@@ -128,15 +141,17 @@ class BusinessesViewController: UIViewController, UITableViewDelegate, UITableVi
         insets.bottom += InfiniteScrollActivityView.defaultHeight;
         self.tableView.contentInset = insets
     }
-    
+
      // MARK: - Navigation
-     
+    
      override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let nav = segue.destination as! UINavigationController
-        let vc  = nav.viewControllers.first as! FilterViewController
-        vc.delegate = self
+        if segue.identifier ==  "filterSegue"{
+            let nav = segue.destination as! UINavigationController
+            let vc  = nav.viewControllers.first as! FilterViewController
+            vc.delegate = self
+        }
      }
- 
+
 }
 
 // SearchBar methods
@@ -144,11 +159,14 @@ extension BusinessesViewController: UISearchBarDelegate {
     
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(true, animated: true)
+        self.isFiltering = true
         return true
     }
     
     func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.setShowsCancelButton(false, animated: true)
+        self.isFiltering = false
+        self.tableView.reloadData()
         return true
     }
     
@@ -157,9 +175,18 @@ extension BusinessesViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
     }
     
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText == "" {
+            self.filteredBusinesses = self.businesses
+        }else{
+            self.filteredBusinesses = self.businesses.filter({
+                ($0.name?.contains(searchText))!
+            })
+        }
+        self.tableView.reloadData()
+    }
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        searchSettings.searchString = searchBar.text
         searchBar.resignFirstResponder()
-//        doSearch()
     }
 }

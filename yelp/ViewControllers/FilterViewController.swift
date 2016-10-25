@@ -15,26 +15,26 @@ protocol FilterSettingsDelegate: class {
 class FilterViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var tableView: UITableView!
     weak var delegate: FilterSettingsDelegate?
-    var isDistanceExpanded: Bool = false
-    var isSortExpanded: Bool = false
-    var isAllCategories: Bool = false
-    var isDeals: Bool?
-    var distRowCount: Int = 1
-    var sortRowCount: Int = 1
-    var selectedCategories = [String]()
-    var categoryRowCount: Int = 4
-    var selectedSort: [String:Any]?
-    var selectedDist: [String:Any]?
-    let dealsSwitchTag: Int = 100
-    let categoriesExpandCellTag: Int = 999
-    let categoriesStartSwitchTag: Int = 400
-    let distances: [[String:Any]] = [["name":"Auto", "value":"Auto"], ["name":"0.3", "value":0.3],
-                                     ["name":"1", "value":1], ["name":"5", "value":5],
-                                     ["name":"20", "value":20]]
-    let sorts: [[String:Any]] = [["name": "Best Matched", "value":YelpSortMode.bestMatched],
+    private var isDistanceExpanded: Bool = false
+    private var isSortExpanded: Bool = false
+    private var isAllCategories: Bool = false
+    private var isDeals: Bool?
+    private var distRowCount: Int = 1
+    private var sortRowCount: Int = 1
+    private var selectedCategories = [String]()
+    private var categoryRowCount: Int = 4
+    private var selectedSort: [String:Any]?
+    private var selectedDist: [String:Any]?
+    private let dealsSwitchTag: Int = 100
+    private let categoriesExpandCellTag: Int = 999
+    private let categoriesStartSwitchTag: Int = 400
+    private let distances: [[String:Any]] = [["name":"Auto", "value":"Auto"], ["name":"0.3", "value":"0.3"],
+                                     ["name":"1", "value":"1"], ["name":"5", "value":"5"],
+                                     ["name":"20", "value":"20"]]
+    private let sorts: [[String:Any]] = [["name": "Best Matched", "value":YelpSortMode.bestMatched],
                                  ["name":"Distance", "value":YelpSortMode.distance],
                                  ["name":"Highest Rated", "value":YelpSortMode.highestRated]]
-    let sortTypes = ["Best Matched", "Distance", "Highest Rated"]
+    private let sortTypes = ["Best Matched", "Distance", "Highest Rated"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
